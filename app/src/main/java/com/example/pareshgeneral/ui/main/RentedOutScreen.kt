@@ -1,0 +1,551 @@
+package com.example.pareshgeneral.ui.main
+
+import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.pareshgeneral.data.Rental
+import com.example.pareshgeneral.data.RentalRepository
+import java.io.File
+
+@Composable
+fun RentedOutScreen(repository: RentalRepository) {
+    val context = LocalContext.current
+    val rentals by repository.rentals.collectAsState()
+
+    var selectedRental by remember { mutableStateOf<Rental?>(null) }
+    var isDeleteMode by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var rentalToDelete by remember { mutableStateOf<Rental?>(null) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Main list screen (blurs when modal is visible)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(if (selectedRental != null) 12.dp else 0.dp)
+                .padding(16.dp)
+        ) {
+            // Header with three dots menu
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Rented Out Jewelry",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4A0E17)
+                    )
+                    Text(
+                        text = "${rentals.size} Active Rental Records",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = "Options",
+                            tint = Color(0xFF4A0E17)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { 
+                                Text(
+                                    text = if (isDeleteMode) "Exit Delete Mode" else "Delete Rental",
+                                    color = if (isDeleteMode) Color.Black else Color.Red
+                                ) 
+                            },
+                            onClick = {
+                                isDeleteMode = !isDeleteMode
+                                showMenu = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (rentals.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No jewelry rented out currently",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                }
+                        } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(rentals, key = { it.id }) { rental ->
+                        RentalCard(
+                            rental = rental,
+                            isDeleteMode = isDeleteMode,
+                            onClick = { selectedRental = rental },
+                            onDeleteClick = { rentalToDelete = rental }
+                        )
+                    }
+                }
+            }
+        }
+
+        // View Detail Modal with Blurred Background Overlay
+        AnimatedVisibility(visible = selectedRental != null) {
+            selectedRental?.let { rental ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .clickable { selectedRental = null },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .fillMaxHeight(0.8f)
+                            .clickable(enabled = false) {}, // Prevent click propagation
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 24.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp)
+                        ) {
+                            // Title & Close
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = rental.name,
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF4A0E17)
+                                    )
+                                    Text(
+                                        text = rental.contact,
+                                        fontSize = 14.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .background(
+                                            Color.LightGray.copy(alpha = 0.5f),
+                                            CircleShape
+                                        )
+                                        .clickable { selectedRental = null },
+                                    contentAlignment = Alignment.Center
+                               ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Close",
+                                        tint = Color.DarkGray,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                            // Scrollable details content
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                // Info Row
+                                DetailRow("Status", getRentalStatus(rental), isBold = true)
+                                DetailRow("Date", rental.date)
+                                DetailRow("Jewellery Price", "Rs. ${rental.jewelryNo}")
+                                DetailRow("Details", rental.jewelryDetails)
+                                DetailRow("Delivery Date", rental.deliveryDate)
+                                DetailRow("Return Date", rental.returnDate)
+                                DetailRow("Rent", "Rs. ${rental.rent}")
+                                DetailRow("Advance", "Rs. ${rental.advance}")
+                                DetailRow("Balance", "Rs. ${rental.balance}", isBold = true)
+                                DetailRow("Refund Deposit", "Rs. ${rental.refundAmount}")
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                // Image Gallery inside modal
+                                if (rental.images.isNotEmpty()) {
+                                    Text(
+                                        text = "Photos",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF4A0E17)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LazyRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(100.dp)
+                                    ) {
+                                        items(rental.images) { path ->
+                                            val file = File(path)
+                                            AsyncImage(
+                                                model = file,
+                                                contentDescription = "Jewelry photo",
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .size(100.dp)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            val status = getRentalStatus(rental)
+                            val isEnabled = status == "On Rent" || status == "Received"
+
+                            // Status Toggle Button
+                            Button(
+                                onClick = {
+                                    val newStatus = !rental.isReceived
+                                    repository.updateReceivedStatus(rental.id, newStatus)
+                                    selectedRental = rental.copy(isReceived = newStatus)
+                                },
+                                enabled = isEnabled,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (rental.isReceived) Color.Gray else Color(0xFF2E7D32),
+                                    disabledContainerColor = Color.LightGray.copy(alpha = 0.5f),
+                                    disabledContentColor = Color.DarkGray
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = if (rental.isReceived) "Mark as Active (On Rent)" else "Mark as Received",
+                                    color = if (isEnabled) Color.White else Color.Gray,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+                            // Modal Bottom Buttons
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { shareToWhatsApp(context, rental) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF25D366) // WhatsApp green
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Share,
+                                        contentDescription = "Resend",
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Resend receipt", fontSize = 12.sp)
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        selectedRental = null
+                                        rentalToDelete = rental
+                                    },
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Color.Red
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.weight(0.7f)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Delete", fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Delete Confirmation Dialog
+        if (rentalToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { rentalToDelete = null },
+                title = { Text("Delete Rental Record?") },
+                text = { Text("Are you sure you want to delete the rental record for ${rentalToDelete?.name}? This action cannot be undone and will delete all photos.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            rentalToDelete?.let {
+                                repository.deleteRental(it.id)
+                                Toast.makeText(context, "Deleted rental for ${it.name}", Toast.LENGTH_SHORT).show()
+                            }
+                            rentalToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { rentalToDelete = null }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun RentalCard(
+    rental: Rental,
+    isDeleteMode: Boolean,
+    onClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // First image thumbnail
+            if (rental.images.isNotEmpty()) {
+                val file = File(rental.images[0])
+                AsyncImage(
+                    model = file,
+                    contentDescription = "Jewelry thumbnail",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(70.dp)
+                        .background(Color.LightGray.copy(alpha = 0.4f), RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = "No photo",
+                        tint = Color.Gray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Text info
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = rental.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = Color(0xFF4A0E17)
+                    )
+                    StatusBadge(status = getRentalStatus(rental))
+                }
+                Text(
+                    text = rental.jewelryDetails,
+                    fontSize = 13.sp,
+                    color = Color.DarkGray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Del: ${rental.deliveryDate.substringBefore(' ')}",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = "Bal: Rs. ${rental.balance}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (rental.balance > 0) Color(0xFFE53935) else Color(0xFF43A047)
+                    )
+                }
+            }
+
+            // Optional delete icon
+            if (isDeleteMode) {
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.Red
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailRow(label: String, value: String, isBold: Boolean = false) {
+    if (value.isBlank()) return
+    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                fontSize = 13.sp,
+                color = Color.Gray
+            )
+            Text(
+                text = value,
+                fontSize = 14.sp,
+                fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
+                color = if (isBold) Color(0xFF4A0E17) else Color.Black
+            )
+        }
+        HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f), modifier = Modifier.padding(top = 4.dp))
+    }
+}
+
+fun getRentalStatus(rental: Rental): String {
+    if (rental.isReceived) return "Received"
+    return try {
+        val sdf = java.text.SimpleDateFormat("dd/MM/yyyy hh:mm a", java.util.Locale.getDefault())
+        val deliveryDate = sdf.parse(rental.deliveryDate)
+        if (deliveryDate != null && java.util.Date().after(deliveryDate)) {
+            "On Rent"
+        } else {
+            "Pending"
+        }
+    } catch (e: Exception) {
+        "On Rent"
+    }
+}
+
+@Composable
+fun StatusBadge(status: String) {
+    val (bgColor, textColor) = when (status) {
+        "Received" -> Color(0xFFE8F5E9) to Color(0xFF2E7D32)
+        "On Rent" -> Color(0xFFFFEBEE) to Color(0xFFC62828)
+        else -> Color(0xFFFFF3E0) to Color(0xFFE65100)
+    }
+
+    Box(
+        modifier = Modifier
+            .background(bgColor, RoundedCornerShape(8.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = status,
+            color = textColor,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}

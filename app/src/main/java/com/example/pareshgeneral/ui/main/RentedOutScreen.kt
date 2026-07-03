@@ -28,7 +28,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,6 +43,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -75,6 +79,45 @@ fun RentedOutScreen(repository: RentalRepository) {
     var showMenu by remember { mutableStateOf(false) }
     var rentalToDelete by remember { mutableStateOf<Rental?>(null) }
 
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf("All") }
+    var currentSortOption by remember { mutableStateOf("Invoice Date (Newest)") }
+    var showSortMenu by remember { mutableStateOf(false) }
+
+    val filteredRentals = remember(rentals, searchQuery, selectedFilter, currentSortOption) {
+        var list = rentals.filter { rental ->
+            val query = searchQuery.trim().lowercase()
+            query.isBlank() || 
+                rental.name.lowercase().contains(query) ||
+                rental.contact.contains(query) ||
+                rental.jewelryDetails.lowercase().contains(query)
+        }
+
+        if (selectedFilter != "All") {
+            list = list.filter { getRentalStatus(it) == selectedFilter }
+        }
+
+        val dateParser = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+        val dateTimeParser = java.text.SimpleDateFormat("dd/MM/yyyy hh:mm a", java.util.Locale.getDefault())
+
+        val parseDateSafe = { dateStr: String ->
+            try { dateParser.parse(dateStr)?.time ?: 0L } catch(e: Exception) { 0L }
+        }
+        val parseDateTimeSafe = { dateTimeStr: String ->
+            try { dateTimeParser.parse(dateTimeStr)?.time ?: 0L } catch(e: Exception) { 0L }
+        }
+
+        when (currentSortOption) {
+            "Return Date (Soonest)" -> list.sortedBy { parseDateTimeSafe(it.returnDate) }
+            "Return Date (Latest)" -> list.sortedByDescending { parseDateTimeSafe(it.returnDate) }
+            "Delivery Date (Soonest)" -> list.sortedBy { parseDateTimeSafe(it.deliveryDate) }
+            "Delivery Date (Latest)" -> list.sortedByDescending { parseDateTimeSafe(it.deliveryDate) }
+            "Invoice Date (Newest)" -> list.sortedByDescending { parseDateSafe(it.date) }
+            "Invoice Date (Oldest)" -> list.sortedBy { parseDateSafe(it.date) }
+            else -> list
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Main list screen (blurs when modal is visible)
         Column(
@@ -97,7 +140,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                         color = Color(0xFF4A0E17)
                     )
                     Text(
-                        text = "${rentals.size} Active Rental Records",
+                        text = "${filteredRentals.size} items found (${rentals.size} total)",
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
@@ -133,6 +176,113 @@ fun RentedOutScreen(repository: RentalRepository) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Search text field
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Search by name, contact or jewellery...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = "Clear search", tint = Color.Gray)
+                        }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF4A0E17),
+                    focusedLabelColor = Color(0xFF4A0E17),
+                    unfocusedBorderColor = Color.LightGray
+                )
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Filter & Sort Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Scrollable filter row
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(listOf("All", "Pending", "On Rent", "Received")) { filterOpt ->
+                        val isSelected = selectedFilter == filterOpt
+                        val chipBg = if (isSelected) Color(0xFF4A0E17) else Color.LightGray.copy(alpha = 0.15f)
+                        val chipText = if (isSelected) Color.White else Color.DarkGray
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(chipBg)
+                                .clickable { selectedFilter = filterOpt }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(text = filterOpt, color = chipText, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Sort Dropdown
+                Box {
+                    OutlinedButton(
+                        onClick = { showSortMenu = true },
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.height(36.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4A0E17))
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Sort,
+                                contentDescription = "Sort",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Sort", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        val sortOptions = listOf(
+                            "Invoice Date (Newest)",
+                            "Invoice Date (Oldest)",
+                            "Return Date (Soonest)",
+                            "Return Date (Latest)",
+                            "Delivery Date (Soonest)",
+                            "Delivery Date (Latest)"
+                        )
+                        sortOptions.forEach { sortOpt ->
+                            DropdownMenuItem(
+                                text = { 
+                                    Text(
+                                        text = sortOpt, 
+                                        fontWeight = if (currentSortOption == sortOpt) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (currentSortOption == sortOpt) Color(0xFF4A0E17) else Color.Black
+                                    ) 
+                                },
+                                onClick = {
+                                    currentSortOption = sortOpt
+                                    showSortMenu = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             if (rentals.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -146,18 +296,34 @@ fun RentedOutScreen(repository: RentalRepository) {
                         color = Color.Gray
                     )
                 }
-                        } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(rentals, key = { it.id }) { rental ->
-                        RentalCard(
-                            rental = rental,
-                            isDeleteMode = isDeleteMode,
-                            onClick = { selectedRental = rental },
-                            onDeleteClick = { rentalToDelete = rental }
+            } else {
+                if (filteredRentals.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No rentals match your search criteria",
+                            fontSize = 15.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Medium
                         )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(filteredRentals, key = { it.id }) { rental ->
+                            RentalCard(
+                                rental = rental,
+                                isDeleteMode = isDeleteMode,
+                                onClick = { selectedRental = rental },
+                                onDeleteClick = { rentalToDelete = rental }
+                            )
+                        }
                     }
                 }
             }

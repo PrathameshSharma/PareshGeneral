@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Star
@@ -30,11 +32,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,23 +71,41 @@ fun AnalyticsScreen(repository: RentalRepository) {
     val currentYear = calendar.get(Calendar.YEAR)
     val now = Calendar.getInstance()
 
+    val monthsList = listOf(
+        "January", "February", "March", "April", "May", "June", 
+        "July", "August", "September", "October", "November", "December"
+    )
+    val yearsList = listOf("2024", "2025", "2026", "2027", "2028", "2029", "2030")
+
+    var selectedMonthIndex by remember { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
+    var selectedYear by remember { mutableStateOf(calendar.get(Calendar.YEAR).toString()) }
+
+    var showMonthMenu by remember { mutableStateOf(false) }
+    var showYearMenu by remember { mutableStateOf(false) }
+
     // 1. Calculations
     val activeRentals = remember(rentals) { rentals.filter { !it.isReceived } }
     val totalActiveCount = activeRentals.size
     val outstandingBalance = remember(activeRentals) { activeRentals.sumOf { it.balance } }
 
+    val selectedMonthNum = selectedMonthIndex + 1
+    val selectedYearNum = selectedYear.toIntOrNull() ?: currentYear
+
     var monthlyRevenue = 0.0
     var yearlyRevenue = 0.0
 
     for (rental in rentals) {
-        val parts = rental.date.split("/")
-        if (parts.size == 3) {
-            val rentMonth = parts[1].toIntOrNull() ?: 0
-            val rentYear = parts[2].toIntOrNull() ?: 0
-            if (rentYear == currentYear) {
-                yearlyRevenue += rental.rent
-                if (rentMonth == currentMonth) {
-                    monthlyRevenue += rental.rent
+        if (rental.deliveryDate.isNotBlank()) {
+            val datePart = rental.deliveryDate.substringBefore(' ')
+            val parts = datePart.split("/")
+            if (parts.size == 3) {
+                val delMonth = parts[1].toIntOrNull() ?: 0
+                val delYear = parts[2].toIntOrNull() ?: 0
+                if (delYear == selectedYearNum) {
+                    yearlyRevenue += rental.rent
+                    if (delMonth == selectedMonthNum) {
+                        monthlyRevenue += rental.rent
+                    }
                 }
             }
         }
@@ -147,7 +172,6 @@ fun AnalyticsScreen(repository: RentalRepository) {
             .padding(16.dp)
     ) {
         // Welcome and Month display
-        val monthName = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(Date()) }
         Text(
             text = "Performance Dashboard",
             fontSize = 20.sp,
@@ -155,10 +179,108 @@ fun AnalyticsScreen(repository: RentalRepository) {
             color = Color(0xFF4A0E17)
         )
         Text(
-            text = "Operational metrics for $monthName",
+            text = "Operational metrics for ${monthsList[selectedMonthIndex]} $selectedYear",
             fontSize = 13.sp,
             color = Color.Gray
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Month & Year Selector Cards
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Month Selector Card
+            Box(modifier = Modifier.weight(1f)) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showMonthMenu = true },
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = monthsList[selectedMonthIndex],
+                            color = Color(0xFF4A0E17),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Select Month",
+                            tint = Color(0xFF4A0E17)
+                        )
+                    }
+                }
+                DropdownMenu(
+                    expanded = showMonthMenu,
+                    onDismissRequest = { showMonthMenu = false },
+                    modifier = Modifier.background(Color.White)
+                ) {
+                    monthsList.forEachIndexed { index, mName ->
+                        DropdownMenuItem(
+                            text = { Text(mName, color = Color(0xFF4A0E17), fontWeight = FontWeight.Medium) },
+                            onClick = {
+                                selectedMonthIndex = index
+                                showMonthMenu = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Year Selector Card
+            Box(modifier = Modifier.weight(1f)) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showYearMenu = true },
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = selectedYear,
+                            color = Color(0xFF4A0E17),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Select Year",
+                            tint = Color(0xFF4A0E17)
+                        )
+                    }
+                }
+                DropdownMenu(
+                    expanded = showYearMenu,
+                    onDismissRequest = { showYearMenu = false },
+                    modifier = Modifier.background(Color.White)
+                ) {
+                    yearsList.forEach { yName ->
+                        DropdownMenuItem(
+                            text = { Text(yName, color = Color(0xFF4A0E17), fontWeight = FontWeight.Medium) },
+                            onClick = {
+                                selectedYear = yName
+                                showYearMenu = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // 2x2 Grid of metrics

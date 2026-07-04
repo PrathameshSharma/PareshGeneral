@@ -31,6 +31,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -42,6 +43,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -94,6 +96,8 @@ fun RentItScreen(repository: RentalRepository) {
 
     val selectedImageUris = remember { mutableStateListOf<Uri>() }
     var tempCameraUriString by rememberSaveable { mutableStateOf<String?>(null) }
+    var showShareDialog by remember { mutableStateOf(false) }
+    var savedRentalForSharing by remember { mutableStateOf<Rental?>(null) }
 
     // Auto-calculate values
     val priceVal = jewelryNo.toDoubleOrNull() ?: 0.0
@@ -471,8 +475,9 @@ fun RentItScreen(repository: RentalRepository) {
                         Toast.makeText(context, "Saved locally. Google Sheet URL not configured.", Toast.LENGTH_LONG).show()
                     }
 
-                    // 3. Share to WhatsApp
-                    shareToWhatsApp(context, saved)
+                    // 3. Save reference for sharing and show confirmation dialog
+                    savedRentalForSharing = saved
+                    showShareDialog = true
 
                     // Reset form after confirm
                     resetForm()
@@ -487,6 +492,44 @@ fun RentItScreen(repository: RentalRepository) {
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    if (showShareDialog) {
+        val rental = savedRentalForSharing
+        AlertDialog(
+            onDismissRequest = {
+                showShareDialog = false
+                savedRentalForSharing = null
+            },
+            title = { Text("Receipt Confirmed") },
+            text = {
+                Text("The rental record has been saved successfully.\n\nWould you like to send the invoice/receipt to the customer on WhatsApp?")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (rental != null) {
+                            shareToWhatsApp(context, rental)
+                        }
+                        showShareDialog = false
+                        savedRentalForSharing = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A0E17))
+                ) {
+                    Text("Send on WhatsApp")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showShareDialog = false
+                        savedRentalForSharing = null
+                    }
+                ) {
+                    Text("Skip / Cancel", color = Color(0xFF4A0E17))
+                }
+            }
+        )
     }
 }
 

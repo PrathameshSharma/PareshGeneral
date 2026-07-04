@@ -150,7 +150,11 @@ class RentalRepository(private val context: Context) {
         val currentList = _rentals.value.toMutableList()
         val index = currentList.indexOfFirst { it.id == rentalId }
         if (index != -1) {
-            val updatedRental = currentList[index].copy(isReceived = isReceived)
+            val original = currentList[index]
+            val updatedRental = original.copy(
+                isReceived = isReceived,
+                balance = if (isReceived) 0.0 else original.balance
+            )
             currentList[index] = updatedRental
             saveAllRentals(currentList)
         }

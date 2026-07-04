@@ -31,22 +31,29 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -69,6 +76,7 @@ import com.example.pareshgeneral.data.Rental
 import com.example.pareshgeneral.data.RentalRepository
 import java.io.File
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RentedOutScreen(repository: RentalRepository) {
     val context = LocalContext.current
@@ -83,6 +91,7 @@ fun RentedOutScreen(repository: RentalRepository) {
     var selectedFilter by remember { mutableStateOf("All") }
     var currentSortOption by remember { mutableStateOf("Invoice Date (Newest)") }
     var showSortMenu by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
     val filteredRentals = remember(rentals, searchQuery, selectedFilter, currentSortOption) {
         var list = rentals.filter { rental ->
@@ -329,193 +338,131 @@ fun RentedOutScreen(repository: RentalRepository) {
             }
         }
 
-        // View Detail Modal with Blurred Background Overlay
-        AnimatedVisibility(visible = selectedRental != null) {
-            selectedRental?.let { rental ->
-                Box(
+        // View Detail Bottom Sheet
+        if (selectedRental != null) {
+            val rental = selectedRental!!
+            val status = getRentalStatus(rental)
+            val isEnabled = status == "On Rent" || status == "Received"
+
+            ModalBottomSheet(
+                onDismissRequest = { selectedRental = null },
+                sheetState = sheetState,
+                containerColor = Color.White,
+                dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
+            ) {
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .clickable { selectedRental = null },
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .fillMaxHeight(0.8f)
-                            .clickable(enabled = false) {}, // Prevent click propagation
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 24.dp)
+                    // Title Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(24.dp)
-                        ) {
-                            // Title & Close
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text(
-                                        text = rental.name,
-                                        fontSize = 22.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF4A0E17)
-                                    )
-                                    Text(
-                                        text = rental.contact,
-                                        fontSize = 14.sp,
-                                        color = Color.Gray
-                                    )
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .background(
-                                            Color.LightGray.copy(alpha = 0.5f),
-                                            CircleShape
-                                        )
-                                        .clickable { selectedRental = null },
-                                    contentAlignment = Alignment.Center
-                               ) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Close",
-                                        tint = Color.DarkGray,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            }
+                        Column {
+                            Text(
+                                text = rental.name,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF4A0E17)
+                            )
+                            Text(
+                                text = rental.contact,
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        }
+                        StatusBadge(status = status)
+                    }
 
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color.LightGray.copy(alpha = 0.5f))
 
-                            // Scrollable details content
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                                    .verticalScroll(rememberScrollState())
-                            ) {
-                                // Info Row
-                                DetailRow("Status", getRentalStatus(rental), isBold = true)
-                                DetailRow("Date", rental.date)
-                                DetailRow("Jewellery Price", "Rs. ${rental.jewelryNo}")
-                                DetailRow("Details", rental.jewelryDetails)
-                                DetailRow("Delivery Date", rental.deliveryDate)
-                                DetailRow("Return Date", rental.returnDate)
-                                DetailRow("Rent", "Rs. ${rental.rent}")
-                                DetailRow("Advance", "Rs. ${rental.advance}")
-                                DetailRow("Balance", "Rs. ${rental.balance}", isBold = true)
-                                DetailRow("Refund Deposit", "Rs. ${rental.refundAmount}")
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                // Image Gallery inside modal
-                                if (rental.images.isNotEmpty()) {
-                                    Text(
-                                        text = "Photos",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF4A0E17)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    LazyRow(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(100.dp)
-                                    ) {
-                                        items(rental.images) { path ->
-                                            val file = File(path)
-                                            AsyncImage(
-                                                model = file,
-                                                contentDescription = "Jewelry photo",
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .size(100.dp)
-                                                    .clip(RoundedCornerShape(8.dp))
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            val status = getRentalStatus(rental)
-                            val isEnabled = status == "On Rent" || status == "Received"
-
-                            // Status Toggle Button
-                            Button(
-                                onClick = {
-                                    val newStatus = !rental.isReceived
-                                    repository.updateReceivedStatus(rental.id, newStatus)
-                                    selectedRental = rental.copy(isReceived = newStatus)
-                                },
-                                enabled = isEnabled,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (rental.isReceived) Color.Gray else Color(0xFF2E7D32),
-                                    disabledContainerColor = Color.LightGray.copy(alpha = 0.5f),
-                                    disabledContentColor = Color.DarkGray
-                                ),
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = if (rental.isReceived) "Mark as Active (On Rent)" else "Mark as Received",
-                                    color = if (isEnabled) Color.White else Color.Gray,
-                                    fontWeight = FontWeight.Bold
+                    // Shortcuts Actions Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        SheetActionButton(
+                            icon = Icons.Default.Share,
+                            label = "Share Receipt",
+                            onClick = { shareToWhatsApp(context, rental) }
+                        )
+                        Spacer(modifier = Modifier.width(24.dp))
+                        SheetActionButton(
+                            icon = if (rental.isReceived) Icons.Default.Refresh else Icons.Default.CheckCircle,
+                            label = if (rental.isReceived) "Mark Active" else "Mark Received",
+                            enabled = isEnabled,
+                            onClick = {
+                                val newStatus = !rental.isReceived
+                                repository.updateReceivedStatus(rental.id, newStatus)
+                                selectedRental = rental.copy(
+                                    isReceived = newStatus,
+                                    balance = if (newStatus) 0.0 else rental.balance
                                 )
                             }
+                        )
+                        Spacer(modifier = Modifier.width(24.dp))
+                        SheetActionButton(
+                            icon = Icons.Default.Delete,
+                            label = "Delete Log",
+                            tintColor = Color.Red,
+                            onClick = {
+                                selectedRental = null
+                                rentalToDelete = rental
+                            }
+                        )
+                    }
 
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color.LightGray.copy(alpha = 0.5f))
 
-                            // Modal Bottom Buttons
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Button(
-                                    onClick = { shareToWhatsApp(context, rental) },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFF25D366) // WhatsApp green
-                                    ),
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Share,
-                                        contentDescription = "Resend",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Resend receipt", fontSize = 12.sp)
-                                }
+                    // Scrollable details content
+                    DetailRow("Invoice Date", rental.date)
+                    DetailRow("Jewellery Price", "Rs. ${rental.jewelryNo}")
+                    DetailRow("Jewellery Details", rental.jewelryDetails)
+                    DetailRow("Delivery Date & Time", rental.deliveryDate)
+                    DetailRow("Expected Return Date", rental.returnDate)
+                    DetailRow("Rent", "Rs. ${rental.rent}")
+                    DetailRow("Advance", "Rs. ${rental.advance}")
+                    DetailRow("Balance", "Rs. ${rental.balance}", isBold = true)
+                    DetailRow("Refund Deposit", "Rs. ${rental.refundAmount}")
 
-                                OutlinedButton(
-                                    onClick = {
-                                        selectedRental = null
-                                        rentalToDelete = rental
-                                    },
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = Color.Red
-                                    ),
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.weight(0.7f)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Delete", fontSize = 12.sp)
-                                }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Image Gallery inside sheet
+                    if (rental.images.isNotEmpty()) {
+                        Text(
+                            text = "Photos",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color(0xFF4A0E17)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                        ) {
+                            items(rental.images) { path ->
+                                val file = File(path)
+                                AsyncImage(
+                                    model = file,
+                                    contentDescription = "Jewelry photo",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                )
                             }
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
         }
@@ -716,6 +663,41 @@ fun StatusBadge(status: String) {
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1
+        )
+    }
+}
+
+@Composable
+fun SheetActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    tintColor: Color = Color(0xFF4A0E17)
+) {
+    val contentAlpha = if (enabled) 1f else 0.38f
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(enabled = enabled) { onClick() }
+            .padding(8.dp)
+            .width(80.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = tintColor.copy(alpha = contentAlpha),
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.DarkGray.copy(alpha = contentAlpha),
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

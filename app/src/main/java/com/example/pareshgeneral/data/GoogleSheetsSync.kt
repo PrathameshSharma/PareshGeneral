@@ -179,6 +179,7 @@ object GoogleSheetsSync {
                                             refundAmount = rObj.optDouble("refundAmount", 0.0),
                                             isReceived = rObj.optBoolean("isReceived", false),
                                             lastUpdated = rObj.optLong("lastUpdated", System.currentTimeMillis()),
+                                            isDeleted = rObj.optBoolean("isDeleted", false),
                                             images = imgList
                                         )
                                     )

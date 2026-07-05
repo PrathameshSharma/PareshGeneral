@@ -43,13 +43,16 @@ object GoogleSheetsSync {
             var currentUrl = apiUrl
             var redirectCount = 0
             val maxRedirects = 5
+            var isPost = true
 
             while (redirectCount < maxRedirects) {
-                val body = json.toString().toRequestBody(JSON_MEDIA_TYPE)
-                val request = Request.Builder()
-                    .url(currentUrl)
-                    .post(body)
-                    .build()
+                val requestBuilder = Request.Builder().url(currentUrl)
+                val request = if (isPost) {
+                    val body = json.toString().toRequestBody(JSON_MEDIA_TYPE)
+                    requestBuilder.post(body).build()
+                } else {
+                    requestBuilder.get().build()
+                }
 
                 client.newCall(request).execute().use { response ->
                     val code = response.code
@@ -60,6 +63,7 @@ object GoogleSheetsSync {
                         if (location != null) {
                             currentUrl = location
                             redirectCount++
+                            isPost = false
                             Log.d("GoogleSheetsSync", "Redirecting to: $location (Count: $redirectCount)")
                             return@use // continue loop in outside scope
                         }
@@ -116,13 +120,16 @@ object GoogleSheetsSync {
             var currentUrl = apiUrl
             var redirectCount = 0
             val maxRedirects = 5
+            var isPost = true
 
             while (redirectCount < maxRedirects) {
-                val body = payload.toString().toRequestBody(JSON_MEDIA_TYPE)
-                val request = Request.Builder()
-                    .url(currentUrl)
-                    .post(body)
-                    .build()
+                val requestBuilder = Request.Builder().url(currentUrl)
+                val request = if (isPost) {
+                    val body = payload.toString().toRequestBody(JSON_MEDIA_TYPE)
+                    requestBuilder.post(body).build()
+                } else {
+                    requestBuilder.get().build()
+                }
 
                 client.newCall(request).execute().use { response ->
                     val code = response.code
@@ -133,6 +140,7 @@ object GoogleSheetsSync {
                         if (location != null) {
                             currentUrl = location
                             redirectCount++
+                            isPost = false
                             Log.d("GoogleSheetsSync", "Redirecting sync to: $location (Count: $redirectCount)")
                             return@use
                         }

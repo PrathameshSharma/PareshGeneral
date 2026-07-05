@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -91,11 +92,10 @@ fun LockScreen(onUnlockSuccess: () -> Unit) {
                 Image(
                     painter = painterResource(id = R.drawable.app_logo),
                     contentDescription = "Shop Logo",
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
-                        .padding(4.dp)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

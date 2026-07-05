@@ -9,8 +9,10 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFFD4AF37),       // Gold
@@ -40,9 +42,18 @@ private val LightColorScheme = lightColorScheme(
     outline = Color.LightGray
 )
 
+
+object ThemeConfig {
+    var isDarkTheme by mutableStateOf<Boolean?>(null)
+}
+
 @Composable
 fun PareshGeneralTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = when (ThemeConfig.isDarkTheme) {
+        true -> true
+        false -> false
+        else -> isSystemInDarkTheme()
+    },
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {

@@ -2,6 +2,7 @@ package com.example.pareshgeneral.ui.main
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,6 +62,11 @@ import androidx.compose.ui.unit.sp
 import com.example.pareshgeneral.R
 import com.example.pareshgeneral.data.RentalRepository
 import com.example.pareshgeneral.theme.PareshGeneralTheme
+import com.example.pareshgeneral.theme.ThemeConfig
+import android.content.Context
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.DarkMode
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,6 +137,7 @@ fun DashboardScreenContent(
     onSettingsClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -145,31 +152,73 @@ fun DashboardScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.primary)
-                        .padding(horizontal = 24.dp, vertical = 32.dp)
+                        .padding(horizontal = 20.dp, vertical = 28.dp)
                 ) {
-                    Column {
-                        Image(
-                            painter = painterResource(id = R.drawable.app_logo),
-                            contentDescription = "Shop Logo",
-                            modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surface)
-                                .padding(4.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Paresh General",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Bridal Jewellery On Rent",
-                            color = MaterialTheme.colorScheme.secondary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                    val isDark = when (ThemeConfig.isDarkTheme) {
+                        true -> true
+                        false -> false
+                        else -> androidx.compose.foundation.isSystemInDarkTheme()
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Image(
+                                painter = painterResource(id = R.drawable.app_logo),
+                                contentDescription = "Shop Logo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(CircleShape)
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Paresh General",
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Bridal Jewellery On Rent",
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        // Light / Dark Theme selector icon buttons
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    ThemeConfig.isDarkTheme = false
+                                    context.getSharedPreferences("PareshGeneralPrefs", Context.MODE_PRIVATE)
+                                        .edit().putString("user_theme_pref", "light").apply()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LightMode,
+                                    contentDescription = "Light Theme",
+                                    tint = if (!isDark) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    ThemeConfig.isDarkTheme = true
+                                    context.getSharedPreferences("PareshGeneralPrefs", Context.MODE_PRIVATE)
+                                        .edit().putString("user_theme_pref", "dark").apply()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DarkMode,
+                                    contentDescription = "Dark Theme",
+                                    tint = if (isDark) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
                     }
                 }
 

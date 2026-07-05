@@ -214,8 +214,9 @@ class RentalRepository(private val context: Context) {
     fun getGoogleSheetUrl(): String {
         val prefs = context.getSharedPreferences("PareshGeneralPrefs", Context.MODE_PRIVATE)
         val saved = prefs.getString("google_sheet_url", "")
-        val defaultUrl = "https://script.google.com/macros/s/AKfycbxERgNVm7jCQuvxw5i2-ahCeHhRxPtX7l65az7Ih-3cvD6xD2ra_IjR_p_tpQSd_e9HNw/exec"
-        return if (saved.isNullOrBlank()) defaultUrl else saved
+        val defaultUrl = "https://script.google.com/macros/s/AKfycby6lHlGdqhyZlJM8QdF4diudLklHYAQ-dCrD2XS_AA-0KhyTyYZSqLp-jkr2bICkIobCg/exec"
+        val oldDefault = "https://script.google.com/macros/s/AKfycbxERgNVm7jCQuvxw5i2-ahCeHhRxPtX7l65az7Ih-3cvD6xD2ra_IjR_p_tpQSd_e9HNw/exec"
+        return if (saved.isNullOrBlank() || saved == oldDefault) defaultUrl else saved
     }
 
     fun saveGoogleSheetUrl(url: String) {

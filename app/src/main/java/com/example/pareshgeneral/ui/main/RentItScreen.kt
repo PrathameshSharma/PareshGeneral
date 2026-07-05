@@ -171,7 +171,7 @@ fun RentItScreen(repository: RentalRepository) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF4A0E17).copy(alpha = 0.05f))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -181,12 +181,12 @@ fun RentItScreen(repository: RentalRepository) {
                     text = "Bridal Jewellery Bill Details",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF4A0E17)
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     text = "Feed the details to generate digital receipt",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         }
@@ -204,9 +204,9 @@ fun RentItScreen(repository: RentalRepository) {
                     .clickable { showDatePicker(context) { date = it } },
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color.Black,
-                    disabledBorderColor = Color.LightGray,
-                    disabledLabelColor = Color.DarkGray
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             )
         }
@@ -257,9 +257,9 @@ fun RentItScreen(repository: RentalRepository) {
                 .fillMaxWidth()
                 .clickable { showDateTimePicker(context) { deliveryDate = it } },
             colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = Color.Black,
-                disabledBorderColor = Color.LightGray,
-                disabledLabelColor = Color.DarkGray
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -273,9 +273,9 @@ fun RentItScreen(repository: RentalRepository) {
                 .fillMaxWidth()
                 .clickable { showDateTimePicker(context) { returnDate = it } },
             colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = Color.Black,
-                disabledBorderColor = Color.LightGray,
-                disabledLabelColor = Color.DarkGray
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                disabledBorderColor = MaterialTheme.colorScheme.outline,
+                disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -307,9 +307,9 @@ fun RentItScreen(repository: RentalRepository) {
                 enabled = false,
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color(0xFF4A0E17),
-                    disabledBorderColor = Color(0xFF4A0E17).copy(alpha = 0.5f),
-                    disabledLabelColor = Color.DarkGray
+                    disabledTextColor = MaterialTheme.colorScheme.primary,
+                    disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -320,9 +320,9 @@ fun RentItScreen(repository: RentalRepository) {
                 enabled = false,
                 modifier = Modifier.weight(1f),
                 colors = OutlinedTextFieldDefaults.colors(
-                    disabledTextColor = Color(0xFF4A0E17),
-                    disabledBorderColor = Color(0xFF4A0E17).copy(alpha = 0.5f),
-                    disabledLabelColor = Color.DarkGray
+                    disabledTextColor = MaterialTheme.colorScheme.primary,
+                    disabledBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             )
         }
@@ -334,14 +334,17 @@ fun RentItScreen(repository: RentalRepository) {
             text = "Jewellery Photos",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF4A0E17)
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = { galleryLauncher.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.weight(1f)
             ) {
@@ -349,7 +352,10 @@ fun RentItScreen(repository: RentalRepository) {
             }
             Button(
                 onClick = { triggerCamera() },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                ),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.weight(1f)
             ) {
@@ -401,10 +407,10 @@ fun RentItScreen(repository: RentalRepository) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.LightGray.copy(alpha = 0.2f))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
-                Text("नियम व शर्ते (Terms & Conditions):", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF4A0E17))
+                Text("नियम व शर्ते (Terms & Conditions):", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(4.dp))
                 val terms = listOf(
                     "एक बार ज्वेलरी बुक कराने के बाद उसे किसी भी कारण से कैंसिल नहीं किया जाएगा।",
@@ -415,7 +421,7 @@ fun RentItScreen(repository: RentalRepository) {
                     "अतिरिक्त समय लगने पे उसका भी किराया लिया जाएगा।"
                 )
                 terms.forEach { term ->
-                    Text("• $term", fontSize = 11.sp, lineHeight = 14.sp)
+                    Text("• $term", fontSize = 11.sp, lineHeight = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }
@@ -429,7 +435,7 @@ fun RentItScreen(repository: RentalRepository) {
         ) {
             OutlinedButton(
                 onClick = { resetForm() },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4A0E17)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .weight(1f)
@@ -482,7 +488,10 @@ fun RentItScreen(repository: RentalRepository) {
                     // Reset form after confirm
                     resetForm()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A0E17), contentColor = Color.White),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .weight(1.5f)
@@ -514,7 +523,10 @@ fun RentItScreen(repository: RentalRepository) {
                         showShareDialog = false
                         savedRentalForSharing = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A0E17))
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
                     Text("Send on WhatsApp")
                 }
@@ -526,7 +538,7 @@ fun RentItScreen(repository: RentalRepository) {
                         savedRentalForSharing = null
                     }
                 ) {
-                    Text("Skip / Cancel", color = Color(0xFF4A0E17))
+                    Text("Skip / Cancel", color = MaterialTheme.colorScheme.primary)
                 }
             }
         )

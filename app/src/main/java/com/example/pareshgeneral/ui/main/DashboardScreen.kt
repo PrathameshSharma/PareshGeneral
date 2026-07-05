@@ -108,14 +108,14 @@ fun DashboardScreen(onLogout: () -> Unit) {
                         repository.saveGoogleSheetUrl(sheetUrl.trim())
                         showSettingsDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A0E17))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Save")
+                    Text("Save", color = MaterialTheme.colorScheme.onPrimary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showSettingsDialog = false }) {
-                    Text("Cancel", color = Color(0xFF4A0E17))
+                    Text("Cancel", color = MaterialTheme.colorScheme.primary)
                 }
             }
         )
@@ -138,13 +138,13 @@ fun DashboardScreenContent(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = Color.White
+                drawerContainerColor = MaterialTheme.colorScheme.surface
             ) {
                 // Drawer Header
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF4A0E17))
+                        .background(MaterialTheme.colorScheme.primary)
                         .padding(horizontal = 24.dp, vertical = 32.dp)
                 ) {
                     Column {
@@ -154,19 +154,19 @@ fun DashboardScreenContent(
                             modifier = Modifier
                                 .size(64.dp)
                                 .clip(CircleShape)
-                                .background(Color.White)
+                                .background(MaterialTheme.colorScheme.surface)
                                 .padding(4.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "Paresh General",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Bridal Jewellery On Rent",
-                            color = Color(0xFFD4AF37),
+                            color = MaterialTheme.colorScheme.secondary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -185,11 +185,11 @@ fun DashboardScreenContent(
                     },
                     icon = { Icon(Icons.Default.Refresh, contentDescription = "RentIt") },
                     colors = NavigationDrawerItemDefaults.colors(
-                        selectedContainerColor = Color(0xFF4A0E17).copy(alpha = 0.1f),
-                        selectedIconColor = Color(0xFF4A0E17),
-                        selectedTextColor = Color(0xFF4A0E17),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.DarkGray
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     ),
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
@@ -205,11 +205,11 @@ fun DashboardScreenContent(
                     },
                     icon = { Icon(Icons.Default.List, contentDescription = "RentedOut") },
                     colors = NavigationDrawerItemDefaults.colors(
-                        selectedContainerColor = Color(0xFF4A0E17).copy(alpha = 0.1f),
-                        selectedIconColor = Color(0xFF4A0E17),
-                        selectedTextColor = Color(0xFF4A0E17),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.DarkGray
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     ),
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
@@ -225,11 +225,11 @@ fun DashboardScreenContent(
                     },
                     icon = { Icon(Icons.Default.BarChart, contentDescription = "Analytics") },
                     colors = NavigationDrawerItemDefaults.colors(
-                        selectedContainerColor = Color(0xFF4A0E17).copy(alpha = 0.1f),
-                        selectedIconColor = Color(0xFF4A0E17),
-                        selectedTextColor = Color(0xFF4A0E17),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.DarkGray
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     ),
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
@@ -241,7 +241,7 @@ fun DashboardScreenContent(
                 TopAppBar(
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Open Navigation Menu", tint = Color.White)
+                            Icon(Icons.Default.Menu, contentDescription = "Open Navigation Menu", tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     },
                     title = {
@@ -254,18 +254,18 @@ fun DashboardScreenContent(
                                     .size(32.dp)
                                     .clip(CircleShape)
                             )
-                            Text("Paresh General", color = Color.White)
+                            Text("Paresh General", color = MaterialTheme.colorScheme.onPrimary)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF4A0E17)
+                        containerColor = MaterialTheme.colorScheme.primary
                     ),
                     actions = {
                         IconButton(onClick = onSettingsClick) {
-                            Icon(Icons.Default.Settings, contentDescription = "Google Sheet Settings", tint = Color.White)
+                            Icon(Icons.Default.Settings, contentDescription = "Google Sheet Settings", tint = MaterialTheme.colorScheme.onPrimary)
                         }
                         IconButton(onClick = onLogout) {
-                            Icon(Icons.Default.ExitToApp, contentDescription = "Logout", tint = Color.White)
+                            Icon(Icons.Default.ExitToApp, contentDescription = "Logout", tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 )

@@ -60,6 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.CircularProgressIndicator
 import kotlinx.coroutines.launch
@@ -152,12 +153,12 @@ fun RentedOutScreen(repository: RentalRepository) {
                         text = "Rented Out Jewelry",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4A0E17)
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = "${filteredRentals.size} items found (${rentals.size} total)",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
 
@@ -185,7 +186,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Sync Cloud",
-                            tint = Color(0xFF4A0E17)
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
 
@@ -194,7 +195,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                             Icon(
                                 Icons.Default.MoreVert,
                                 contentDescription = "Options",
-                                tint = Color(0xFF4A0E17)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     DropdownMenu(
@@ -205,7 +206,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                             text = { 
                                 Text(
                                     text = if (isDeleteMode) "Exit Delete Mode" else "Delete Rental",
-                                    color = if (isDeleteMode) Color.Black else Color.Red
+                                    color = if (isDeleteMode) MaterialTheme.colorScheme.onSurface else Color.Red
                                 ) 
                             },
                             onClick = {
@@ -225,11 +226,11 @@ fun RentedOutScreen(repository: RentalRepository) {
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Search by name, contact or jewellery...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear search", tint = Color.Gray)
+                            Icon(Icons.Default.Close, contentDescription = "Clear search", tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                         }
                     }
                 },
@@ -237,9 +238,9 @@ fun RentedOutScreen(repository: RentalRepository) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF4A0E17),
-                    focusedLabelColor = Color(0xFF4A0E17),
-                    unfocusedBorderColor = Color.LightGray
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
 
@@ -258,8 +259,8 @@ fun RentedOutScreen(repository: RentalRepository) {
                 ) {
                     items(listOf("All", "Pending", "On Rent", "Received")) { filterOpt ->
                         val isSelected = selectedFilter == filterOpt
-                        val chipBg = if (isSelected) Color(0xFF4A0E17) else Color.LightGray.copy(alpha = 0.15f)
-                        val chipText = if (isSelected) Color.White else Color.DarkGray
+                        val chipBg = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                        val chipText = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
@@ -281,7 +282,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         modifier = Modifier.height(36.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4A0E17))
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -312,7 +313,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                                     Text(
                                         text = sortOpt, 
                                         fontWeight = if (currentSortOption == sortOpt) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (currentSortOption == sortOpt) Color(0xFF4A0E17) else Color.Black
+                                        color = if (currentSortOption == sortOpt) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                     ) 
                                 },
                                 onClick = {
@@ -382,8 +383,8 @@ fun RentedOutScreen(repository: RentalRepository) {
             ModalBottomSheet(
                 onDismissRequest = { selectedRental = null },
                 sheetState = sheetState,
-                containerColor = Color.White,
-                dragHandle = { BottomSheetDefaults.DragHandle(color = Color.LightGray) }
+                containerColor = MaterialTheme.colorScheme.surface,
+                dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.outline) }
             ) {
                 Column(
                     modifier = Modifier
@@ -402,18 +403,18 @@ fun RentedOutScreen(repository: RentalRepository) {
                                 text = rental.name,
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4A0E17)
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Text(
                                 text = rental.contact,
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         }
                         StatusBadge(status = status)
                     }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color.LightGray.copy(alpha = 0.5f))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
 
                     // Shortcuts Actions Row
                     Row(
@@ -452,7 +453,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                         )
                     }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color.LightGray.copy(alpha = 0.5f))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
 
                     // Scrollable details content
                     DetailRow("Invoice Date", rental.date)
@@ -473,7 +474,7 @@ fun RentedOutScreen(repository: RentalRepository) {
                             text = "Photos",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
-                            color = Color(0xFF4A0E17)
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         LazyRow(
@@ -534,11 +535,11 @@ fun RentedOutScreen(repository: RentalRepository) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f)),
+                    .background(Color.Black.copy(alpha = 0.6f)),
                 contentAlignment = Alignment.Center
             ) {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.padding(24.dp)
                 ) {
@@ -547,12 +548,12 @@ fun RentedOutScreen(repository: RentalRepository) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF4A0E17))
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Syncing with cloud database...",
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF4A0E17),
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp
                         )
                     }
@@ -574,7 +575,7 @@ fun RentalCard(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -598,13 +599,13 @@ fun RentalCard(
                 Box(
                     modifier = Modifier
                         .size(70.dp)
-                        .background(Color.LightGray.copy(alpha = 0.4f), RoundedCornerShape(8.dp)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Default.Info,
                         contentDescription = "No photo",
-                        tint = Color.Gray
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -621,7 +622,7 @@ fun RentalCard(
                         text = rental.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = Color(0xFF4A0E17),
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -632,7 +633,7 @@ fun RentalCard(
                 Text(
                     text = rental.jewelryDetails,
                     fontSize = 13.sp,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -644,7 +645,7 @@ fun RentalCard(
                     Text(
                         text = "Del: ${rental.deliveryDate.substringBefore(' ')}",
                         fontSize = 11.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                     Text(
                         text = "Bal: Rs. ${rental.balance}",
@@ -681,16 +682,16 @@ fun DetailRow(label: String, value: String, isBold: Boolean = false) {
             Text(
                 text = label,
                 fontSize = 13.sp,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
             Text(
                 text = value,
                 fontSize = 14.sp,
                 fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-                color = if (isBold) Color(0xFF4A0E17) else Color.Black
+                color = if (isBold) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
         }
-        HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f), modifier = Modifier.padding(top = 4.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), modifier = Modifier.padding(top = 4.dp))
     }
 }
 
@@ -711,10 +712,11 @@ fun getRentalStatus(rental: Rental): String {
 
 @Composable
 fun StatusBadge(status: String) {
+    val isDark = isSystemInDarkTheme()
     val (bgColor, textColor) = when (status) {
-        "Received" -> Color(0xFFE8F5E9) to Color(0xFF2E7D32)
-        "On Rent" -> Color(0xFFFFEBEE) to Color(0xFFC62828)
-        else -> Color(0xFFFFF3E0) to Color(0xFFE65100)
+        "Received" -> if (isDark) Color(0xFF143B1A) to Color(0xFF81C784) else Color(0xFFE8F5E9) to Color(0xFF2E7D32)
+        "On Rent" -> if (isDark) Color(0xFF4A1519) to Color(0xFFE57373) else Color(0xFFFFEBEE) to Color(0xFFC62828)
+        else -> if (isDark) Color(0xFF4C2A0E) to Color(0xFFFFB74D) else Color(0xFFFFF3E0) to Color(0xFFE65100)
     }
 
     Box(
@@ -738,7 +740,7 @@ fun SheetActionButton(
     label: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
-    tintColor: Color = Color(0xFF4A0E17)
+    tintColor: Color = MaterialTheme.colorScheme.primary
 ) {
     val contentAlpha = if (enabled) 1f else 0.38f
     Column(
@@ -759,7 +761,7 @@ fun SheetActionButton(
             text = label,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.DarkGray.copy(alpha = contentAlpha),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f * contentAlpha),
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis

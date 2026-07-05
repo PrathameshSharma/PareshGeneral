@@ -35,7 +35,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -176,12 +178,12 @@ fun AnalyticsScreen(repository: RentalRepository) {
             text = "Performance Dashboard",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF4A0E17)
+            color = MaterialTheme.colorScheme.primary
         )
         Text(
             text = "Operational metrics for ${monthsList[selectedMonthIndex]} $selectedYear",
             fontSize = 13.sp,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -196,8 +198,8 @@ fun AnalyticsScreen(repository: RentalRepository) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showMonthMenu = true },
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.5f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
@@ -207,25 +209,25 @@ fun AnalyticsScreen(repository: RentalRepository) {
                     ) {
                         Text(
                             text = monthsList[selectedMonthIndex],
-                            color = Color(0xFF4A0E17),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Select Month",
-                            tint = Color(0xFF4A0E17)
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
                 DropdownMenu(
                     expanded = showMonthMenu,
                     onDismissRequest = { showMonthMenu = false },
-                    modifier = Modifier.background(Color.White)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                 ) {
                     monthsList.forEachIndexed { index, mName ->
                         DropdownMenuItem(
-                            text = { Text(mName, color = Color(0xFF4A0E17), fontWeight = FontWeight.Medium) },
+                            text = { Text(mName, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium) },
                             onClick = {
                                 selectedMonthIndex = index
                                 showMonthMenu = false
@@ -241,8 +243,8 @@ fun AnalyticsScreen(repository: RentalRepository) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showYearMenu = true },
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.5f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
@@ -252,25 +254,25 @@ fun AnalyticsScreen(repository: RentalRepository) {
                     ) {
                         Text(
                             text = selectedYear,
-                            color = Color(0xFF4A0E17),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Select Year",
-                            tint = Color(0xFF4A0E17)
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
                 DropdownMenu(
                     expanded = showYearMenu,
                     onDismissRequest = { showYearMenu = false },
-                    modifier = Modifier.background(Color.White)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                 ) {
                     yearsList.forEach { yName ->
                         DropdownMenuItem(
-                            text = { Text(yName, color = Color(0xFF4A0E17), fontWeight = FontWeight.Medium) },
+                            text = { Text(yName, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium) },
                             onClick = {
                                 selectedYear = yName
                                 showYearMenu = false
@@ -290,7 +292,7 @@ fun AnalyticsScreen(repository: RentalRepository) {
                 value = "$totalActiveCount sets",
                 subText = "Currently rented out",
                 icon = Icons.Default.Info,
-                color = Color(0xFF4A0E17),
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -299,7 +301,7 @@ fun AnalyticsScreen(repository: RentalRepository) {
                 value = "Rs. ${String.format(Locale.US, "%,.0f", outstandingBalance)}",
                 subText = "Outstanding collection",
                 icon = Icons.Default.Warning,
-                color = Color(0xFFD4AF37),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -310,7 +312,7 @@ fun AnalyticsScreen(repository: RentalRepository) {
                 value = "Rs. ${String.format(Locale.US, "%,.0f", monthlyRevenue)}",
                 subText = "Earned this month",
                 icon = Icons.Default.Star,
-                color = Color(0xFF2E7D32),
+                color = Color(0xFF43A047),
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -319,7 +321,7 @@ fun AnalyticsScreen(repository: RentalRepository) {
                 value = "Rs. ${String.format(Locale.US, "%,.0f", yearlyRevenue)}",
                 subText = "Earned in $currentYear",
                 icon = Icons.Default.Star,
-                color = Color(0xFF1565C0),
+                color = Color(0xFF1E88E5),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -331,15 +333,18 @@ fun AnalyticsScreen(repository: RentalRepository) {
             text = "Return Warnings & Alerts",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF4A0E17)
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         if (overdueAlerts.isEmpty() && dueTodayAlerts.isEmpty() && dueTomorrowAlerts.isEmpty()) {
+            val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val greenColor = if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32)
+            val greenBg = if (isDark) Color(0xFF143B1A) else Color(0xFFE8F5E9)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+                colors = CardDefaults.cardColors(containerColor = greenBg)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -348,21 +353,25 @@ fun AnalyticsScreen(repository: RentalRepository) {
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "No alerts",
-                        tint = Color(0xFF2E7D32),
+                        tint = greenColor,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("All caught up!", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32), fontSize = 14.sp)
-                        Text("No pending or overdue jewelry returns found.", color = Color(0xFF2E7D32).copy(alpha = 0.8f), fontSize = 12.sp)
+                        Text("All caught up!", fontWeight = FontWeight.Bold, color = greenColor, fontSize = 14.sp)
+                        Text("No pending or overdue jewelry returns found.", color = greenColor.copy(alpha = 0.8f), fontSize = 12.sp)
                     }
                 }
             }
         } else {
+            val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val overdueColor = if (isDark) Color(0xFFEF5350) else Color.Red
+            val dueTodayColor = if (isDark) Color(0xFFFFB74D) else Color(0xFFFF9800)
+            val dueTomorrowColor = if (isDark) Color(0xFF64B5F6) else Color(0xFF1976D2)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                overdueAlerts.forEach { WarningItem(context, it, "Overdue", Color.Red) }
-                dueTodayAlerts.forEach { WarningItem(context, it, "Due Today", Color(0xFFFF9800)) }
-                dueTomorrowAlerts.forEach { WarningItem(context, it, "Due Tomorrow", Color(0xFF1976D2)) }
+                overdueAlerts.forEach { WarningItem(context, it, "Overdue", overdueColor) }
+                dueTodayAlerts.forEach { WarningItem(context, it, "Due Today", dueTodayColor) }
+                dueTomorrowAlerts.forEach { WarningItem(context, it, "Due Tomorrow", dueTomorrowColor) }
             }
         }
 
@@ -373,17 +382,17 @@ fun AnalyticsScreen(repository: RentalRepository) {
             text = "Most Popular Jewellery Items",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF4A0E17)
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(8.dp))
 
         if (popularItems.isEmpty()) {
-            Text("No jewelry descriptions registered yet.", color = Color.Gray, fontSize = 12.sp)
+            Text("No jewelry descriptions registered yet.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
         } else {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
@@ -404,7 +413,7 @@ fun AnalyticsScreen(repository: RentalRepository) {
                                     text = name,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color.DarkGray,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f)
@@ -413,7 +422,7 @@ fun AnalyticsScreen(repository: RentalRepository) {
                                     text = "$count rentals",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF4A0E17)
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
@@ -423,14 +432,14 @@ fun AnalyticsScreen(repository: RentalRepository) {
                                     .fillMaxWidth()
                                     .height(8.dp)
                                     .clip(CircleShape)
-                                    .background(Color.LightGray.copy(alpha = 0.3f))
+                                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                             ) {
                                 val fraction = count.toFloat() / maxRentals.toFloat()
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(fraction)
                                         .height(8.dp)
-                                        .background(Color(0xFFD4AF37))
+                                        .background(MaterialTheme.colorScheme.secondary)
                                 )
                             }
                         }
@@ -454,9 +463,9 @@ fun MetricCard(
     Card(
         modifier = modifier
             .height(116.dp)
-            .border(1.dp, Color(0xFFD4AF37).copy(alpha = 0.15f), RoundedCornerShape(16.dp)),
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -472,7 +481,7 @@ fun MetricCard(
             ) {
                 Text(
                     text = title,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -486,14 +495,14 @@ fun MetricCard(
             Column {
                 Text(
                     text = value,
-                    color = Color(0xFF4A0E17),
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subText,
-                    color = Color.LightGray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     fontSize = 9.sp,
                     lineHeight = 10.sp
                 )
@@ -509,7 +518,7 @@ fun WarningItem(context: Context, rental: Rental, status: String, color: Color) 
             .fillMaxWidth()
             .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -538,7 +547,7 @@ fun WarningItem(context: Context, rental: Rental, status: String, color: Color) 
                         text = rental.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -547,14 +556,14 @@ fun WarningItem(context: Context, rental: Rental, status: String, color: Color) 
                 Text(
                     text = "Jewellery: ${rental.jewelryDetails}",
                     fontSize = 11.sp,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "Return Date: ${rental.returnDate}",
                     fontSize = 10.sp,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     fontWeight = FontWeight.Medium
                 )
             }

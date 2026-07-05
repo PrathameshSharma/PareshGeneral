@@ -60,6 +60,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.CircularProgressIndicator
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -74,6 +77,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.pareshgeneral.data.Rental
 import com.example.pareshgeneral.data.RentalRepository
+import com.example.pareshgeneral.data.GoogleSheetsSync
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +85,8 @@ import java.io.File
 fun RentedOutScreen(repository: RentalRepository) {
     val context = LocalContext.current
     val rentals by repository.rentals.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    var isSyncing by remember { mutableStateOf(false) }
 
     var selectedRental by remember { mutableStateOf<Rental?>(null) }
     var isDeleteMode by remember { mutableStateOf(false) }
@@ -155,14 +161,42 @@ fun RentedOutScreen(repository: RentalRepository) {
                     )
                 }
 
-                Box {
-                    IconButton(onClick = { showMenu = true }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            if (!isSyncing) {
+                                isSyncing = true
+                                coroutineScope.launch {
+                                    val url = repository.getGoogleSheetUrl()
+                                    val localList = repository.getAllRentalsForSync()
+                                    val synced = GoogleSheetsSync.syncWithCloud(url, localList)
+                                    if (synced != null) {
+                                        repository.mergeSyncedRentals(synced)
+                                        android.widget.Toast.makeText(context, "Database synced successfully!", android.widget.Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        android.widget.Toast.makeText(context, "Failed to sync database. Check internet/URL settings.", android.widget.Toast.LENGTH_LONG).show()
+                                    }
+                                    isSyncing = false
+                                }
+                            }
+                        },
+                        enabled = !isSyncing
+                    ) {
                         Icon(
-                            Icons.Default.MoreVert,
-                            contentDescription = "Options",
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Sync Cloud",
                             tint = Color(0xFF4A0E17)
                         )
                     }
+
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "Options",
+                                tint = Color(0xFF4A0E17)
+                            )
+                        }
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false }
@@ -182,8 +216,9 @@ fun RentedOutScreen(repository: RentalRepository) {
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
             // Search text field
             OutlinedTextField(
@@ -493,6 +528,36 @@ fun RentedOutScreen(repository: RentalRepository) {
                     }
                 }
             )
+        }
+
+        if (isSyncing) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF4A0E17))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Syncing with cloud database...",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4A0E17),
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }

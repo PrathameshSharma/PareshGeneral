@@ -16,5 +16,7 @@ data class Rental(
     val balance: Double = 0.0,
     val refundAmount: Double = 0.0,
     val images: List<String> = emptyList(),
-    val isReceived: Boolean = false
+    val isReceived: Boolean = false,
+    val lastUpdated: Long = System.currentTimeMillis(),
+    val isDeleted: Boolean = false
 )

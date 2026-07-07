@@ -19,7 +19,6 @@ class RentalRepository(private val context: Context) {
         if (!exists()) mkdirs()
     }
 
-    private val allRentals = mutableListOf<Rental>()
     private val _rentals = MutableStateFlow<List<Rental>>(emptyList())
     val rentals: StateFlow<List<Rental>> = _rentals.asStateFlow()
 
@@ -60,15 +59,11 @@ class RentalRepository(private val context: Context) {
                         balance = obj.optDouble("balance", 0.0),
                         refundAmount = obj.optDouble("refundAmount", 0.0),
                         images = imagesList,
-                        isReceived = obj.optBoolean("isReceived", false),
-                        lastUpdated = obj.optLong("lastUpdated", System.currentTimeMillis()),
-                        isDeleted = obj.optBoolean("isDeleted", false)
+                        isReceived = obj.optBoolean("isReceived", false)
                     )
                 )
             }
-            allRentals.clear()
-            allRentals.addAll(list)
-            _rentals.value = list.filter { !it.isDeleted }
+            _rentals.value = list
         } catch (e: Exception) {
             Log.e("RentalRepository", "Error loading rentals", e)
             _rentals.value = emptyList()
@@ -94,13 +89,11 @@ class RentalRepository(private val context: Context) {
                     put("refundAmount", rental.refundAmount)
                     put("images", JSONArray(rental.images))
                     put("isReceived", rental.isReceived)
-                    put("lastUpdated", rental.lastUpdated)
-                    put("isDeleted", rental.isDeleted)
                 }
                 jsonArray.put(obj)
             }
             rentalsFile.writeText(jsonArray.toString())
-            _rentals.value = list.filter { !it.isDeleted }
+            _rentals.value = list
         } catch (e: Exception) {
             Log.e("RentalRepository", "Error saving rentals", e)
         }
@@ -129,86 +122,41 @@ class RentalRepository(private val context: Context) {
             }
         }
 
-        val finalRental = rental.copy(
-            images = copiedImagePaths,
-            lastUpdated = System.currentTimeMillis()
-        )
-        allRentals.add(0, finalRental)
-        saveAllRentals(allRentals)
+        val finalRental = rental.copy(images = copiedImagePaths)
+        val currentList = _rentals.value.toMutableList()
+        currentList.add(0, finalRental)
+        saveAllRentals(currentList)
         return finalRental
     }
 
     fun deleteRental(rentalId: String) {
-        val index = allRentals.indexOfFirst { it.id == rentalId }
+        val currentList = _rentals.value.toMutableList()
+        val index = currentList.indexOfFirst { it.id == rentalId }
         if (index != -1) {
-            val original = allRentals[index]
-            val updated = original.copy(
-                isDeleted = true,
-                lastUpdated = System.currentTimeMillis()
-            )
-            allRentals[index] = updated
-            saveAllRentals(allRentals)
+            val rental = currentList[index]
+            for (path in rental.images) {
+                val file = File(path)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+            currentList.removeAt(index)
+            saveAllRentals(currentList)
         }
     }
 
     fun updateReceivedStatus(rentalId: String, isReceived: Boolean) {
-        val index = allRentals.indexOfFirst { it.id == rentalId }
+        val currentList = _rentals.value.toMutableList()
+        val index = currentList.indexOfFirst { it.id == rentalId }
         if (index != -1) {
-            val original = allRentals[index]
+            val original = currentList[index]
             val updatedRental = original.copy(
                 isReceived = isReceived,
-                balance = if (isReceived) 0.0 else original.balance,
-                lastUpdated = System.currentTimeMillis()
+                balance = if (isReceived) 0.0 else original.balance
             )
-            allRentals[index] = updatedRental
-            saveAllRentals(allRentals)
+            currentList[index] = updatedRental
+            saveAllRentals(currentList)
         }
-    }
-
-    fun getAllRentalsForSync(): List<Rental> {
-        return allRentals.toList()
-    }
-
-    fun mergeSyncedRentals(syncedList: List<Rental>) {
-        val syncedMap = syncedList.associateBy { it.id }
-        val mergedList = mutableListOf<Rental>()
-        val processedIds = mutableSetOf<String>()
-
-        for (local in allRentals) {
-            val synced = syncedMap[local.id]
-            if (synced != null) {
-                if (synced.lastUpdated >= local.lastUpdated) {
-                    mergedList.add(synced)
-                } else {
-                    mergedList.add(local)
-                }
-            } else {
-                mergedList.add(local)
-            }
-            processedIds.add(local.id)
-        }
-
-        for (synced in syncedList) {
-            if (!processedIds.contains(synced.id)) {
-                mergedList.add(synced)
-            }
-        }
-
-        // Cleanup local files for soft-deleted items
-        for (rental in mergedList) {
-            if (rental.isDeleted) {
-                for (path in rental.images) {
-                    val file = File(path)
-                    if (file.exists()) {
-                        file.delete()
-                    }
-                }
-            }
-        }
-
-        allRentals.clear()
-        allRentals.addAll(mergedList)
-        saveAllRentals(allRentals)
     }
 
     fun getGoogleSheetUrl(): String {

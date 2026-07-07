@@ -63,8 +63,8 @@ object GoogleSheetsSync {
                         if (location != null) {
                             currentUrl = location
                             redirectCount++
-                            isPost = false
-                            Log.d("GoogleSheetsSync", "Redirecting to: $location (Count: $redirectCount)")
+                            isPost = (code == 307 || code == 308)
+                            Log.d("GoogleSheetsSync", "Redirecting to: $location (Count: $redirectCount, isPost: $isPost)")
                             return@use // continue loop in outside scope
                         }
                     }
